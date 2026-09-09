@@ -7,8 +7,6 @@
 #   2. 把若依 SQL 脚本拷到 mysql/init/
 #   3. 执行 ./deploy.sh init (Docker 自动从源码构建镜像)
 
-version: "3.8"
-
 services:
   mysql:
     image: mysql:8.0
@@ -46,7 +44,10 @@ services:
     volumes:
       - ./redis/redis.conf:/etc/redis/redis.conf:ro
       - ./data/redis:/data
-    command: redis-server /etc/redis/redis.conf
+    # 命令行参数优先于 redis.conf，密码只维护在 .env 中。
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server /etc/redis/redis.conf --requirepass \"$$REDIS_PASSWORD\""]
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
@@ -73,6 +74,13 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # 覆盖若依默认 localhost 配置；Spring Boot 会优先读取这些环境变量。
+      SPRING_DATASOURCE_DRUID_MASTER_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-ry}?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_DRUID_MASTER_USERNAME: root
+      SPRING_DATASOURCE_DRUID_MASTER_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       mysql:
         condition: service_healthy
