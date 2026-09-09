@@ -1,0 +1,5 @@
+# 占位文件,保留此目录结构
+# SSL 证书文件放这里:
+#   fullchain.pem  (证书链)
+#   privkey.pem   (私钥)
+# 申请方式见 README.md

@@ -1,0 +1,120 @@
+# 若依 RuoYi-Vue Docker Compose 编排 (方案C: 多阶段构建)
+# 包含: MySQL 8 + Redis 7 + ruoyi-admin(后端) + ruoyi-ui(前端) + nginx(顶层反代+HTTPS)
+#
+# 方案C: Docker 内自动打包,服务器只需 Docker,无需装 JDK/Maven/Node
+# 使用前请先:
+#   1. 拷贝 .env.example 为 .env 并修改密码/域名
+#   2. 把若依 SQL 脚本拷到 mysql/init/
+#   3. 执行 ./deploy.sh init (Docker 自动从源码构建镜像)
+
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ruoyi-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ry}
+      TZ: Asia/Shanghai
+    # 生产环境不对外暴露端口,仅在 docker 网络内可访问
+    # 调试时可取消注释,通过 127.0.0.1 本机访问
+    # ports:
+    #   - "127.0.0.1:3306:3306"
+    volumes:
+      - ./mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - ./data/mysql:/var/lib/mysql
+      - ./mysql/backup:/backup
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - ruoyi-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: ruoyi-redis
+    restart: unless-stopped
+    # ports:
+    #   - "127.0.0.1:6379:6379"
+    volumes:
+      - ./redis/redis.conf:/etc/redis/redis.conf:ro
+      - ./data/redis:/data
+    command: redis-server /etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ruoyi-net
+
+  ruoyi-admin:
+    build:
+      context: ../ruoyi-source
+      dockerfile: Dockerfile
+    image: ruoyi-admin:latest
+    container_name: ruoyi-admin
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      # 这些变量可在 application.yml 里用 ${ENV} 引用,或直接改 yml
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-ry}
+      DB_USER: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # ports:
+    #   - "127.0.0.1:8080:8080"
+    volumes:
+      - ./data/logs:/home/ruoyi/logs
+      - ./data/uploadPath:/home/ruoyi/uploadPath
+    networks:
+      - ruoyi-net
+
+  ruoyi-ui:
+    build:
+      context: ../ruoyi-source/ruoyi-ui
+      dockerfile: Dockerfile
+    image: ruoyi-ui:latest
+    container_name: ruoyi-ui
+    restart: unless-stopped
+    depends_on:
+      - ruoyi-admin
+    networks:
+      - ruoyi-net
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: ruoyi-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./data/nginx/logs:/var/log/nginx
+    depends_on:
+      - ruoyi-ui
+      - ruoyi-admin
+    networks:
+      - ruoyi-net
+
+networks:
+  ruoyi-net:
+    driver: bridge

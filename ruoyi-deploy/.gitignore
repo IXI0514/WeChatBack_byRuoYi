@@ -1,0 +1,23 @@
+# 数据卷(MySQL/Redis 数据、日志、上传文件)
+data/
+
+# SSL 证书
+nginx/certs/*.pem
+nginx/certs/*.key
+nginx/certs/acme/
+
+# MySQL 备份
+mysql/backup/*.sql
+
+# 本地环境变量(含密码,不要提交)
+.env
+
+# 打包产物
+ruoyi-admin/*.jar
+ruoyi-ui/dist/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.swp
+*.log

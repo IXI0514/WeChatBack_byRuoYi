@@ -1,0 +1,12 @@
+.git
+.github
+ruoyi-ui/node_modules
+ruoyi-ui/dist
+uploadPath
+docs
+bin
+doc
+*.log
+*.md
+ry.bat
+ry.sh

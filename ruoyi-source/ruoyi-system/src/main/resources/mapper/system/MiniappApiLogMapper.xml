@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.MiniappApiLogMapper">
+
+    <resultMap type="MiniappApiLog" id="MiniappApiLogResult">
+        <result property="logId"       column="log_id"       />
+        <result property="type"        column="type"          />
+        <result property="des"         column="des"           />
+        <result property="result"      column="result"        />
+        <result property="details"     column="details"       />
+        <result property="miniappId"   column="miniapp_id"    />
+        <result property="openid"      column="openid"        />
+        <result property="reqUrl"      column="req_url"       />
+        <result property="respTime"    column="resp_time"     />
+        <result property="ip"          column="ip"            />
+        <result property="createTime"  column="create_time"    />
+    </resultMap>
+
+    <sql id="selectMiniappApiLogVo">
+        select log_id, type, des, result, details, miniapp_id, openid, req_url, resp_time, ip, create_time
+        from miniapp_api_log
+    </sql>
+
+    <select id="selectMiniappApiLogList" parameterType="MiniappApiLog" resultMap="MiniappApiLogResult">
+        <include refid="selectMiniappApiLogVo"/>
+        <where>
+            <if test="type != null and type != ''"> and type = #{type} </if>
+            <if test="des != null and des != ''"> and des like concat('%', #{des}, '%') </if>
+            <if test="result != null and result != ''"> and result = #{result} </if>
+            <if test="miniappId != null and miniappId != ''"> and miniapp_id = #{miniappId} </if>
+            <if test="openid != null and openid != ''"> and openid = #{openid} </if>
+            <if test="ip != null and ip != ''"> and ip = #{ip} </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                and date_format(create_time,'%Y-%m-%d') >= date_format(#{params.beginTime},'%Y-%m-%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and date_format(create_time,'%Y-%m-%d') &lt;= date_format(#{params.endTime},'%Y-%m-%d')
+            </if>
+        </where>
+        order by log_id desc
+    </select>
+
+    <insert id="insertMiniappApiLog" parameterType="MiniappApiLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into miniapp_api_log(
+            <trim suffixOverrides=",">
+                type,
+                des,
+                result,
+                <if test="details != null">details,</if>
+                <if test="miniappId != null">miniapp_id,</if>
+                <if test="openid != null">openid,</if>
+                <if test="reqUrl != null">req_url,</if>
+                <if test="respTime != null">resp_time,</if>
+                <if test="ip != null">ip,</if>
+                create_time,
+            </trim>
+        )values(
+            <trim suffixOverrides=",">
+                #{type},
+                #{des},
+                #{result},
+                <if test="details != null">#{details},</if>
+                <if test="miniappId != null">#{miniappId},</if>
+                <if test="openid != null">#{openid},</if>
+                <if test="reqUrl != null">#{reqUrl},</if>
+                <if test="respTime != null">#{respTime},</if>
+                <if test="ip != null">#{ip},</if>
+                sysdate(),
+            </trim>
+        )
+    </insert>
+
+    <delete id="deleteMiniappApiLogByIds" parameterType="Long">
+        delete from miniapp_api_log where log_id in
+        <foreach item="logId" collection="array" open="(" separator="," close=")">
+            #{logId}
+        </foreach>
+    </delete>
+
+    <update id="cleanMiniappApiLog">
+        truncate table miniapp_api_log
+    </update>
+
+</mapper>
