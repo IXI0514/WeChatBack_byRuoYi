@@ -274,7 +274,7 @@ location /api/ {
 你的后端给小程序做用户验证，建议用 JWT token 方式（无状态，适合小程序）：
 
 1. 小程序 `wx.login()` 拿 code
-2. 调后端 `POST /miniapp/login/verify`，传小程序标识及用户信息；部署在统一入口时由 Nginx 转发到后端
+2. 调后端 `POST /api/login/verify`，传小程序标识及用户信息；部署在统一入口时由 Nginx 转发到后端
 3. 后端用 code 换 openid，生成 JWT token 返回
 4. 小程序存 token，后续请求带 `Authorization: Bearer <token>` 头
 5. 后端写一个 JWT 拦截器验证 token（若依自带 Spring Security，加一个 filter 即可）

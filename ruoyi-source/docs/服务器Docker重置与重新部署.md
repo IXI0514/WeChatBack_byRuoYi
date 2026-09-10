@@ -87,7 +87,7 @@ REDIS_PASSWORD=自行设置强密码
 DOMAIN=73ham.top
 ```
 
-从阿里云下载 **Nginx（pem/key）** 格式证书，上传到服务器后保存为：
+确认 `73ham.top` 已添加 A 记录并指向当前服务器。从阿里云下载覆盖 `73ham.top` 的 **Nginx（pem/key）** 证书，上传到服务器后保存为：
 
 ```bash
 cd /home/ubuntu/mywebshow/ruoyi-deploy
@@ -159,11 +159,11 @@ curl -I https://73ham.top/admin/login
 - Nginx 输出 `syntax is ok` 和 `test is successful`；
 - `https://73ham.top/` 显示公开静态首页；
 - `https://73ham.top/admin/login` 显示后台登录页；
-- 小程序仍调用 `https://73ham.top/miniapp/...`。
+- 小程序调用 `https://73ham.top/api/...`。
 
 ## 9. 最后安全检查
 
 - `.env`、`nginx/certs/privkey.pem` 均应为 `600` 权限，且不提交 Git。
 - 云服务器安全组仅开放 `22`、`80`、`443`，不要开放 `3306`、`6379`、`8080`。
-- 微信小程序后台的 request/upload/download 合法域名继续填写 `https://73ham.top`。
+- 微信小程序后台的 request/upload/download 合法域名填写 `https://73ham.top`。
 - 后台地址固定使用 `https://73ham.top/admin/`；根域名用于公开静态首页。

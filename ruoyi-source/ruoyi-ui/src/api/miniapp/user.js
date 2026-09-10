@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询小程序用户列表
 export function listUser(query) {
   return request({
-    url: '/miniapp/user/list',
+    url: '/system/miniapp/user/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listUser(query) {
 // 查询用户详情
 export function getUser(userId) {
   return request({
-    url: '/miniapp/user/' + userId,
+    url: '/system/miniapp/user/' + userId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getUser(userId) {
 // 修改用户
 export function updateUser(data) {
   return request({
-    url: '/miniapp/user',
+    url: '/system/miniapp/user',
     method: 'put',
     data: data
   })
@@ -29,7 +29,7 @@ export function updateUser(data) {
 // 修改会员状态
 export function updateMemberStatus(data) {
   return request({
-    url: '/miniapp/user/member',
+    url: '/system/miniapp/user/member',
     method: 'put',
     data: data
   })

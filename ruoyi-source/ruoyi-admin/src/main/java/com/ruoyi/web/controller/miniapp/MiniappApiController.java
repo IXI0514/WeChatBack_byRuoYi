@@ -1,6 +1,9 @@
 package com.ruoyi.web.controller.miniapp;
 
-import java.util.Arrays;
+import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import com.ruoyi.system.domain.MiniappRepeater;
+import com.ruoyi.system.service.IMiniappRepeaterService;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,16 +23,16 @@ import io.swagger.annotations.ApiOperation;
 /**
  * 小程序登录验证接口(给小程序调用,匿名访问)
  *
- * 接口: POST /miniapp/login/verify
+ * 对外接口: POST /api/login/verify
  * 参数: miniappId, openid, wxId, nickname(可选)
  * 逻辑: 验证小程序标识 -> 查/增用户 -> 返回是否会员
  *
  * @author ruoyi
  */
-@Api(tags = "小程序登录验证")
+@Api(tags = "小程序 API")
 @RestController
-@RequestMapping("/miniapp/login")
-public class MiniappLoginController
+@RequestMapping("/api")
+public class MiniappApiController
 {
     @Autowired
     private IMiniappUserService miniappUserService;
@@ -43,7 +46,7 @@ public class MiniappLoginController
      */
     @Anonymous
     @ApiOperation("用户验证")
-    @PostMapping("/verify")
+    @PostMapping("/login/verify")
     public AjaxResult verify(@RequestBody Map<String, String> params)
     {
         long startTime = System.currentTimeMillis();
@@ -51,7 +54,7 @@ public class MiniappLoginController
         String openid = params.get("openid");
         String wxId = params.get("wxId");
         String nickname = params.get("nickname");
-        String reqUrl = "/miniapp/login/verify";
+        String reqUrl = "/api/login/verify";
         String ip = params.getOrDefault("ip", "");
 
         String details = "{\"miniappId\":\"" + miniappId + "\",\"openid\":\"" + openid + "\",\"wxId\":\"" + wxId + "\"}";
@@ -116,5 +119,19 @@ public class MiniappLoginController
             ajax.put("memberExpire", user.getMemberExpire());
             return ajax;
         }
+    }
+
+    @Autowired
+    private IMiniappRepeaterService miniappRepeaterService;
+
+    @Anonymous
+    @ApiOperation("公开中继台列表")
+    @GetMapping("/repeater/public/list")
+    public AjaxResult publicList(MiniappRepeater repeater)
+    {
+        repeater.setStatus("0");
+        repeater.setIsPublic("0");
+        List<MiniappRepeater> list = miniappRepeaterService.selectMiniappRepeaterList(repeater);
+        return AjaxResult.success(list);
     }
 }

@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询接口日志列表
 export function listLog(query) {
   return request({
-    url: '/miniapp/log/list',
+    url: '/system/miniapp/log/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listLog(query) {
 // 删除接口日志
 export function delLog(logIds) {
   return request({
-    url: '/miniapp/log/' + logIds,
+    url: '/system/miniapp/log/' + logIds,
     method: 'delete'
   })
 }
@@ -20,7 +20,7 @@ export function delLog(logIds) {
 // 清空接口日志
 export function cleanLog() {
   return request({
-    url: '/miniapp/log/clean',
+    url: '/system/miniapp/log/clean',
     method: 'delete'
   })
 }
