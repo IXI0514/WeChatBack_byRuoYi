@@ -45,7 +45,7 @@ CREATE TABLE `miniapp_api_log` (
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='接口日志表';
 
--- 3. 配置: 小程序白名单标识(复用若依 sys_config 表)
+-- 3. 配置: 小程序白名单标识(复用基础 sys_config 表)
 INSERT INTO `sys_config` (`config_name`, `config_key`, `config_value`, `config_type`, `create_by`, `create_time`, `remark`)
 SELECT '小程序白名单标识', 'miniapp.valid.ids', 'wx_hnml,wx_ham', 'Y', 'admin', NOW(), '逗号分隔的小程序标识列表,配置存在才执行业务逻辑'
 FROM DUAL

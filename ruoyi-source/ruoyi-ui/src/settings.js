@@ -32,12 +32,12 @@ module.exports = {
   /**
    * 显示页签图标
    */
-  tagsIcon: false,
+  tagsIcon: true,
 
   /**
    * 标签页样式：card 卡片（默认）、chrome 谷歌浏览器风格
    */
-  tagsViewStyle: 'card',
+  tagsViewStyle: 'chrome',
 
   /**
    * 是否固定头部
@@ -47,7 +47,7 @@ module.exports = {
   /**
    * 是否显示logo
    */
-  sidebarLogo: true,
+  sidebarLogo: false,
 
   /**
    * 是否显示动态标题
@@ -62,5 +62,5 @@ module.exports = {
   /**
    * 底部版权文本内容
    */
-  footerContent: 'Copyright © 2018-2026 RuoYi. All Rights Reserved.'
+  footerContent: ''
 }

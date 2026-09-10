@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="73HAM 无线电中继与社区服务平台">
+  <title>73HAM</title>
+  <style>
+    :root { color-scheme: dark; --ink: #eef5ff; --muted: #a7b7cd; --line: rgba(207,226,255,.16); --blue: #75c2ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; background: radial-gradient(circle at 22% 12%, #17466d 0, transparent 34rem), radial-gradient(circle at 85% 86%, #183751 0, transparent 30rem), #07111d; }
+    main { width: min(1040px, calc(100% - 48px)); min-height: 100vh; margin: auto; display: flex; flex-direction: column; }
+    header { height: 88px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .brand { letter-spacing: .16em; font-weight: 700; font-size: 1.05rem; }
+    .status { color: var(--muted); font-size: .9rem; }
+    .hero { flex: 1; display: grid; align-content: center; padding: 96px 0; }
+    .eyebrow { color: var(--blue); letter-spacing: .16em; font-size: .78rem; font-weight: 700; }
+    h1 { max-width: 760px; margin: 18px 0; font-size: clamp(2.5rem, 8vw, 5.8rem); line-height: 1.05; letter-spacing: -.055em; }
+    p { max-width: 590px; color: var(--muted); font-size: 1.06rem; line-height: 1.9; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 44px; }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: rgba(10, 28, 46, .46); backdrop-filter: blur(8px); }
+    .card b { display: block; margin-bottom: 7px; font-size: .98rem; }
+    .card span { color: var(--muted); font-size: .9rem; line-height: 1.55; }
+    footer { padding: 24px 0 34px; border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; }
+    @media (max-width: 640px) { main { width: min(100% - 32px, 1040px); } .hero { padding: 64px 0; } .cards { grid-template-columns: 1fr; } .status { display: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><div class="brand">73HAM</div><div class="status">无线电中继与社区服务平台</div></header>
+    <section class="hero">
+      <div class="eyebrow">73HAM · CONNECTING COMMUNITIES</div>
+      <h1>连接信号，连接每一次可靠的沟通。</h1>
+      <p>73HAM 致力于建设清晰、可靠、易于使用的中继信息服务。本站正在持续完善，欢迎关注后续内容与服务更新。</p>
+      <div class="cards">
+        <div class="card"><b>中继信息</b><span>持续整理和维护公开、可核验的中继数据。</span></div>
+        <div class="card"><b>社区服务</b><span>面向无线电爱好者提供便捷的信息查询体验。</span></div>
+        <div class="card"><b>持续建设</b><span>博客与更多公开内容将在这里陆续发布。</span></div>
+      </div>
+    </section>
+    <footer>© 2026 73HAM · 73</footer>
+  </main>
+</body>
+</html>

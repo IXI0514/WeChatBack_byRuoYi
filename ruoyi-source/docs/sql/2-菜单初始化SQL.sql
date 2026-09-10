@@ -1,8 +1,8 @@
 -- =====================================
 -- 文件名: 2-菜单初始化SQL.sql
--- 功能: 添加小程序管理菜单(用户管理 + 接口日志)
--- 菜单ID: 2000-2005(从 2000 开始,不与若依自带菜单冲突)
--- 执行顺序: 在 1-若依基础数据.sql 之后执行
+-- 功能: 添加小程序管理菜单(用户管理 + 接口日志 + 中继台管理)
+-- 菜单ID: 2000-2009(从 2000 开始,不与基础系统菜单冲突)
+-- 执行顺序: 在 1-基础数据.sql 之后执行
 -- 数据库: ry-vue
 -- 执行方式: mysql -uroot -p --default-character-set=utf8mb4 ry-vue < "2-菜单初始化SQL.sql"
 -- =====================================
@@ -24,3 +24,9 @@ INSERT INTO sys_menu VALUES (2004, '接口日志', 2000, 2, 'log', 'miniapp/log/
 
 -- 6. 按钮: 接口日志-删除/清空(按钮类型 F, 权限标识 miniapp:log:remove)
 INSERT INTO sys_menu VALUES (2005, '日志删除', 2004, 1, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'miniapp:log:remove', '#', 'admin', sysdate(), '', NULL, '');
+
+-- 7. 二级菜单及按钮: 中继台管理
+INSERT INTO sys_menu VALUES (2006, '中继台管理', 2000, 3, 'repeater', 'miniapp/repeater/index', '', '', 1, 0, 'C', '0', '0', 'miniapp:repeater:list', 'radio', 'admin', sysdate(), '', NULL, '中继台管理');
+INSERT INTO sys_menu VALUES (2007, '中继台新增', 2006, 1, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'miniapp:repeater:add', '#', 'admin', sysdate(), '', NULL, '');
+INSERT INTO sys_menu VALUES (2008, '中继台修改', 2006, 2, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'miniapp:repeater:edit', '#', 'admin', sysdate(), '', NULL, '');
+INSERT INTO sys_menu VALUES (2009, '中继台删除', 2006, 3, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'miniapp:repeater:remove', '#', 'admin', sysdate(), '', NULL, '');

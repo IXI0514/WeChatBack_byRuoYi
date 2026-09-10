@@ -70,7 +70,7 @@ export const constantRoutes = [
         path: 'index',
         component: () => import('@/views/index'),
         name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
+        meta: { title: '欢迎页', icon: 'dashboard', affix: true }
       }
     ]
   },
@@ -184,6 +184,8 @@ Router.prototype.replace = function push(location) {
 
 export default new Router({
   mode: 'history', // 去掉url中的#
+  // 与 Vue CLI 的 production publicPath 保持一致，支持 /admin/ 子路径刷新与直达。
+  base: process.env.BASE_URL,
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })

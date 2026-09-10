@@ -20,7 +20,7 @@
         @contextmenu.prevent.native="openMenu(tag, $event)"
       >
         <svg-icon v-if="tagsIcon && tag.meta && tag.meta.icon && tag.meta.icon !== '#'" :icon-class="tag.meta.icon" style="margin-right: 3px;" />
-        {{ tag.title }}
+        {{ displayTitle(tag) }}
         <span v-if="!isAffix(tag)" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
       </router-link>
     </scroll-pane>
@@ -167,6 +167,17 @@ export default {
         "background-color": this.theme,
         "border-color": this.theme
       }
+    },
+    displayTitle(tag) {
+      const conciseTitles = {
+        '系统管理': '系统',
+        '系统监控': '监控中心',
+        '系统工具': '开发工具',
+        '部门管理': '组织管理',
+        '通知公告': '公告中心',
+        '日志管理': '日志'
+      }
+      return conciseTitles[tag.title] || tag.title
     },
     isAffix(tag) {
       return tag && tag.meta && tag.meta.affix
