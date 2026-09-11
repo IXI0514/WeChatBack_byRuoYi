@@ -1,6 +1,13 @@
 package com.ruoyi.web.controller.miniapp;
 
 import java.util.List;
+import java.time.Instant;
+import java.util.Arrays;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.ruoyi.web.controller.miniapp.support.MiniappTokenVerifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import com.ruoyi.system.domain.MiniappRepeater;
 import com.ruoyi.system.service.IMiniappRepeaterService;
@@ -39,6 +46,9 @@ public class MiniappApiController
 
     @Autowired
     private ISysConfigService configService;
+
+    @Value("${miniapp.api.aes-key:}")
+    private String apiAesKey;
 
     /**
      * 用户验证接口
@@ -125,13 +135,72 @@ public class MiniappApiController
     private IMiniappRepeaterService miniappRepeaterService;
 
     @Anonymous
-    @ApiOperation("公开中继台列表")
-    @GetMapping("/repeater/public/list")
-    public AjaxResult publicList(MiniappRepeater repeater)
+    @ApiOperation("中继台列表（AES-GCM 请求凭证）")
+    @GetMapping("/repeater/list")
+    public ResponseEntity<AjaxResult> repeaterList(
+            @RequestParam MultiValueMap<String, String> params)
     {
+        if (params.containsKey("token") && params.get("token").size() != 1)
+        {
+            return ResponseEntity.badRequest().body(AjaxResult.error(400, "token 不允许重复传入"));
+        }
+        String token = params.getFirst("token");
+        // 跳过后台 JWT，使用独立的小程序凭证；不能移除此处的校验。
+        final String miniappId;
+        try
+        {
+            miniappId = MiniappTokenVerifier.verify(token, apiAesKey, Instant.now().getEpochSecond());
+        }
+        catch (IllegalStateException e)
+        {
+            return ResponseEntity.status(503).body(AjaxResult.error(503, e.getMessage()));
+        }
+        catch (IllegalArgumentException e)
+        {
+            return ResponseEntity.status(401).body(AjaxResult.error(401, e.getMessage()));
+        }
+        String validIds = configService.selectConfigByKey("miniapp.valid.ids");
+        if (validIds == null || !Arrays.stream(validIds.split(",")).map(String::trim).anyMatch(miniappId::equals))
+        {
+            return ResponseEntity.status(403).body(AjaxResult.error(403, "小程序标识未授权"));
+        }
+        MiniappRepeater repeater = new MiniappRepeater();
+        try
+        {
+            for (String name : params.keySet())
+            {
+                if (!Arrays.asList("token", "province", "city", "repeaterName", "callSign", "operationMode").contains(name)
+                        || params.get(name).size() != 1)
+                    throw new IllegalArgumentException("存在未知或重复查询参数");
+            }
+            repeater.setProvince(queryText(params, "province", 30));
+            repeater.setCity(queryText(params, "city", 30));
+            repeater.setRepeaterName(queryText(params, "repeaterName", 100));
+            repeater.setCallSign(queryText(params, "callSign", 50));
+            repeater.setOperationMode(queryText(params, "operationMode", 16));
+            if (repeater.getCity() != null && repeater.getProvince() == null)
+                throw new IllegalArgumentException("传入城市时必须同时提供省份");
+            if (repeater.getOperationMode() != null
+                    && !Arrays.asList("ANALOG", "DIGITAL", "MIXED").contains(repeater.getOperationMode()))
+                throw new IllegalArgumentException("operationMode 必须为 ANALOG、DIGITAL 或 MIXED");
+        }
+        catch (IllegalArgumentException e)
+        {
+            return ResponseEntity.badRequest().body(AjaxResult.error(400, e.getMessage()));
+        }
         repeater.setStatus("0");
         repeater.setIsPublic("0");
         List<MiniappRepeater> list = miniappRepeaterService.selectMiniappRepeaterList(repeater);
-        return AjaxResult.success(list);
+        return ResponseEntity.ok(AjaxResult.success(list));
+    }
+
+    private String queryText(MultiValueMap<String, String> params, String name, int maxLength)
+    {
+        String value = params.getFirst(name);
+        if (value == null) return null;
+        if (value.length() > maxLength || value.chars().anyMatch(Character::isISOControl))
+            throw new IllegalArgumentException(name + " 长度超限或包含控制字符");
+        value = value.trim();
+        return value.isEmpty() ? null : value;
     }
 }

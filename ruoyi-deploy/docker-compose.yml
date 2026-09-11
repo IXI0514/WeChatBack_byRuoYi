@@ -82,6 +82,7 @@ services:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      MINIAPP_API_AES_KEY: ${MINIAPP_API_AES_KEY:-}
     depends_on:
       mysql:
         condition: service_healthy

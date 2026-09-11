@@ -93,8 +93,8 @@ DOMAIN=73ham.top
 cd /home/ubuntu/mywebshow/ruoyi-deploy
 mkdir -p nginx/certs
 # 将上传后的实际文件名替换到下面两条命令中
-mv 你的证书文件.pem nginx/certs/fullchain.pem
-mv 你的私钥文件.key nginx/certs/privkey.pem
+mv nginx/certs/73ham.top.pem nginx/certs/fullchain.pem
+mv nginx/certs/73ham.top.key nginx/certs/privkey.pem
 chmod 600 nginx/certs/fullchain.pem nginx/certs/privkey.pem
 
 test -s nginx/certs/fullchain.pem && test -s nginx/certs/privkey.pem && echo "HTTPS 证书已就位"
