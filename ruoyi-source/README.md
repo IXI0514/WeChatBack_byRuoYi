@@ -1,3 +1,7 @@
+# 01 · 项目说明
+
+文档入口：[00 · 文档目录](./docs/文档目录.md)；日常发布：[12 · 服务器增量更新](./docs/服务器增量更新.md)。
+
 <p align="center">
 	<img alt="logo" src="https://oscimg.oschina.net/oscnet/up-d3d0a9303e11d522a06cd263f3079027715.png">
 </p>

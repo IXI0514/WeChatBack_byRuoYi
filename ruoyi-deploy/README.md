@@ -1,4 +1,6 @@
-# 若依 RuoYi-Vue Docker 部署套件
+# 14 · 若依 RuoYi-Vue Docker 部署套件
+
+日常发布：[12 · 服务器增量更新](../ruoyi-source/docs/服务器增量更新.md)。全部文档：[00 · 文档目录](../ruoyi-source/docs/文档目录.md)。
 
 把若依（登录 + 后台管理 + 接口服务）一键部署到公网云主机，含 MySQL、Redis、后端、前端、Nginx 反代 + HTTPS。
 

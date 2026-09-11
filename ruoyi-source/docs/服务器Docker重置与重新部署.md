@@ -1,4 +1,23 @@
-# 服务器 Docker 重置与重新部署（不保留数据）
+# 13 · 服务器 Docker 重置与重新部署（不保留数据）
+
+## 快捷脚本方式（推荐用于已准备 env/证书的环境）
+
+本地私有目录 `ruoyi-source/docs/quickdeploy/` 提供 `reset-deploy.sh`、`validate.py` 和编号 17 的 README；该目录整体排除 Git，需手动上传为服务器 `/home/ubuntu/mywebshow/quickdeploy/`，包含隐藏文件 `.env` 以及 `73ham.top.pem/key`。
+
+使用 ubuntu 账号执行（不要 sudo bash）：
+
+```bash
+cd /home/ubuntu/mywebshow
+bash quickdeploy/reset-deploy.sh --check
+# 检查通过后正式执行，按中文提示确认清空：
+bash quickdeploy/reset-deploy.sh
+```
+
+脚本先下载当前 Gitee 分支并预构建，之后才确认清空。仅清空源码和部署目录、还原 Git 跟踪文件，保留根目录 quickdeploy；不删除整个项目根目录，不清理其他 Docker 项目。自动准备 SQL（含 Quartz）、配置、证书，并验证 MySQL 实际查询、Redis PONG、HTTPS 和应用入口。失败停止，不自动回滚。
+
+**脚本方式与下面手动方式二选一，不要混用。** 下文删除整个根目录的命令会连同 quickdeploy 一起删除；使用快捷脚本时不要执行它。脚本仍会永久删除业务数据，不做备份。
+
+## 手动方式
 
 适用目录：`/home/ubuntu/mywebshow`。本文用于彻底清空当前项目的 Docker 容器、MySQL、Redis、上传文件、日志、`.env` 和本地证书，再从 Gitee 重新拉取源码并部署。
 
@@ -93,8 +112,8 @@ DOMAIN=73ham.top
 cd /home/ubuntu/mywebshow/ruoyi-deploy
 mkdir -p nginx/certs
 # 将上传后的实际文件名替换到下面两条命令中
-mv nginx/certs/73ham.top.pem nginx/certs/fullchain.pem
-mv nginx/certs/73ham.top.key nginx/certs/privkey.pem
+cp /home/ubuntu/webfile/73ham.top.pem nginx/certs/fullchain.pem
+cp /home/ubuntu/webfile/73ham.top.key nginx/certs/privkey.pem
 chmod 600 nginx/certs/fullchain.pem nginx/certs/privkey.pem
 
 test -s nginx/certs/fullchain.pem && test -s nginx/certs/privkey.pem && echo "HTTPS 证书已就位"

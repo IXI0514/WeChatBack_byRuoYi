@@ -50,6 +50,46 @@ public class MiniappApiController
     @Value("${miniapp.api.aes-key:}")
     private String apiAesKey;
 
+    /** 仅凭白名单 ID 领取 token，不验证调用方身份；仅用于公开数据。 */
+    @Anonymous
+    @ApiOperation("获取小程序访问凭证")
+    @PostMapping("/token")
+    public ResponseEntity<AjaxResult> token(@RequestBody(required = false) com.fasterxml.jackson.databind.JsonNode params)
+    {
+        if (params == null || !params.isObject() || params.size() != 1
+                || !params.hasNonNull("miniappId") || !params.get("miniappId").isTextual())
+            return ResponseEntity.badRequest().body(AjaxResult.error(400, "仅接受字符串参数 miniappId"));
+        String miniappId = params.get("miniappId").textValue();
+        if (!miniappId.matches("[A-Za-z0-9_-]{1,64}"))
+            return ResponseEntity.badRequest().body(AjaxResult.error(400, "小程序标识格式错误"));
+        try
+        {
+            if (apiAesKey == null || java.util.Base64.getDecoder().decode(apiAesKey).length != 32)
+                throw new IllegalArgumentException();
+        }
+        catch (IllegalArgumentException e)
+        {
+            return ResponseEntity.status(503).body(AjaxResult.error(503, "小程序 API AES 密钥未正确配置"));
+        }
+        String validIds = configService.selectConfigByKey("miniapp.valid.ids");
+        if (validIds == null || !Arrays.stream(validIds.split(",")).map(String::trim).anyMatch(miniappId::equals))
+            return ResponseEntity.status(403).body(AjaxResult.error(403, "小程序标识未授权"));
+        try
+        {
+            long now = Instant.now().getEpochSecond();
+            long expiry = tokenExpirySeconds();
+            AjaxResult result = AjaxResult.success();
+            result.put("token", MiniappTokenVerifier.issue(miniappId, apiAesKey, now));
+            result.put("expiresIn", expiry);
+            result.put("expiresAt", expiry < 0 ? null : now + expiry);
+            return ResponseEntity.ok().header("Cache-Control", "no-store").body(result);
+        }
+        catch (IllegalStateException e)
+        {
+            return ResponseEntity.status(503).body(AjaxResult.error(503, e.getMessage()));
+        }
+    }
+
     /**
      * 用户验证接口
      * 确认数据是否存在,不存在则增加,存在则查询返回
@@ -57,7 +97,14 @@ public class MiniappApiController
     @Anonymous
     @ApiOperation("用户验证")
     @PostMapping("/login/verify")
-    public AjaxResult verify(@RequestBody Map<String, String> params)
+    public ResponseEntity<AjaxResult> verify(@RequestBody Map<String, String> params)
+    {
+        ResponseEntity<AjaxResult> rejected = checkBusinessToken(params.get("token"), params.get("miniappId"));
+        if (rejected != null) return rejected;
+        return ResponseEntity.ok(verifyUser(params));
+    }
+
+    private AjaxResult verifyUser(Map<String, String> params)
     {
         long startTime = System.currentTimeMillis();
         String miniappId = params.get("miniappId");
@@ -149,7 +196,7 @@ public class MiniappApiController
         final String miniappId;
         try
         {
-            miniappId = MiniappTokenVerifier.verify(token, apiAesKey, Instant.now().getEpochSecond());
+            miniappId = MiniappTokenVerifier.verify(token, apiAesKey, Instant.now().getEpochSecond(), tokenExpirySeconds());
         }
         catch (IllegalStateException e)
         {
@@ -202,5 +249,31 @@ public class MiniappApiController
             throw new IllegalArgumentException(name + " 长度超限或包含控制字符");
         value = value.trim();
         return value.isEmpty() ? null : value;
+    }
+
+    private long tokenExpirySeconds()
+    {
+        return MiniappTokenVerifier.expirySeconds(configService.selectConfigByKey("miniapp.token.expire.minutes"));
+    }
+
+    private ResponseEntity<AjaxResult> checkBusinessToken(String token, String requestedId)
+    {
+        try
+        {
+            String id = MiniappTokenVerifier.verify(token, apiAesKey, Instant.now().getEpochSecond(), tokenExpirySeconds());
+            String ids = configService.selectConfigByKey("miniapp.valid.ids");
+            if (!id.equals(requestedId) || ids == null
+                    || !Arrays.stream(ids.split(",")).map(String::trim).anyMatch(id::equals))
+                return ResponseEntity.status(403).body(AjaxResult.error(403, "小程序标识未授权或与凭证不一致"));
+            return null;
+        }
+        catch (IllegalStateException e)
+        {
+            return ResponseEntity.status(503).body(AjaxResult.error(503, e.getMessage()));
+        }
+        catch (IllegalArgumentException e)
+        {
+            return ResponseEntity.status(401).body(AjaxResult.error(401, e.getMessage()));
+        }
     }
 }

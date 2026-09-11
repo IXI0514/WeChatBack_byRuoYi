@@ -1,4 +1,4 @@
-# 公开静态站点
+# 15 · 公开静态站点
 
 此目录会挂载到顶层 Nginx 的 `/usr/share/nginx/html`，访问 `https://73ham.top/` 时展示其中的静态文件。
 
