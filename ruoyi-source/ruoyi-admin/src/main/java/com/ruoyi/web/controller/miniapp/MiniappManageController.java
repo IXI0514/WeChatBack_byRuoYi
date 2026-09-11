@@ -123,7 +123,9 @@ public class MiniappManageController extends BaseController
     @DeleteMapping("/log/clean")
     public AjaxResult cleanLog()
     {
-        return toAjax(miniappApiLogService.cleanMiniappApiLog());
+        // TRUNCATE 成功通常不返回受影响行数，不能使用 toAjax(0) 判定为失败。
+        miniappApiLogService.cleanMiniappApiLog();
+        return success();
     }
 
     // 中继台管理

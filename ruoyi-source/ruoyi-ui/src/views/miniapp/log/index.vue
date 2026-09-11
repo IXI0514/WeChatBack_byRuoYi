@@ -34,6 +34,9 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
+        <el-button type="primary" plain icon="el-icon-refresh" size="mini" @click="getList">刷新</el-button>
+      </el-col>
+      <el-col :span="1.5">
         <el-button type="danger" plain icon="el-icon-delete" size="mini" @click="handleClean" v-hasPermi="['miniapp:log:remove']">清空</el-button>
       </el-col>
       <el-col :span="1.5">
