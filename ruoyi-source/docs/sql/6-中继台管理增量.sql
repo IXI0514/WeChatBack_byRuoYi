@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- 中继台管理：已部署环境增量脚本，可重复执行
 
 CREATE TABLE IF NOT EXISTS miniapp_repeater (

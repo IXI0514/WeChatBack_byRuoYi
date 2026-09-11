@@ -2,20 +2,23 @@
 
 ## 快捷脚本方式（推荐用于已准备 env/证书的环境）
 
-本地私有目录 `ruoyi-source/docs/quickdeploy/` 提供 `reset-deploy.sh`、`validate.py` 和编号 17 的 README；该目录整体排除 Git，需手动上传为服务器 `/home/ubuntu/mywebshow/quickdeploy/`，包含隐藏文件 `.env` 以及 `73ham.top.pem/key`。
+本地私有目录 `ruoyi-source/docs/quickdeploy/` 提供编号 17 的分步重建脚本、`validate.py` 和 README；需整体手动上传为服务器项目目录外的 `/home/ubuntu/quickdeploy/`，包含隐藏文件 `.env`、`myConfig` 以及 `73ham.top.pem/key`。第二步会删除整个 `/home/ubuntu/mywebshow` 后重新拉取准备好的源码。
 
 使用 ubuntu 账号执行（不要 sudo bash）：
 
 ```bash
-cd /home/ubuntu/mywebshow
-bash quickdeploy/reset-deploy.sh --check
-# 检查通过后正式执行，按中文提示确认清空：
-bash quickdeploy/reset-deploy.sh
+cd /home/ubuntu
+# 第一步不删除数据：下载源码、校验配置、构建镜像
+bash /home/ubuntu/quickdeploy/reset-deploy.sh prepare
+# 第二步永久清空整个 mywebshow，按提示输入 yes
+bash /home/ubuntu/quickdeploy/reset-deploy.sh reset
+# 第三步启动全部容器并验收
+bash /home/ubuntu/quickdeploy/reset-deploy.sh deploy
 ```
 
-脚本先下载当前 Gitee 分支并预构建，之后才确认清空。仅清空源码和部署目录、还原 Git 跟踪文件，保留根目录 quickdeploy；不删除整个项目根目录，不清理其他 Docker 项目。自动准备 SQL（含 Quartz）、配置、证书，并验证 MySQL 实际查询、Redis PONG、HTTPS 和应用入口。失败停止，不自动回滚。
+脚本第一步下载当前 Gitee 分支并预构建；第二步才确认清空并删除整个项目根目录，随后用第一步的暂存源码重新创建项目；项目目录外的 `/home/ubuntu/quickdeploy` 不受影响。不清理其他 Docker 项目。第三步自动启动并验证 MySQL、Redis、HTTPS 和应用入口。失败停止，不自动回滚。
 
-**脚本方式与下面手动方式二选一，不要混用。** 下文删除整个根目录的命令会连同 quickdeploy 一起删除；使用快捷脚本时不要执行它。脚本仍会永久删除业务数据，不做备份。
+**脚本方式与下面手动方式二选一，不要混用。** 下文删除项目根目录的命令不会删除项目外的 `/home/ubuntu/quickdeploy`，但使用快捷脚本时仍不要执行它。脚本会永久删除业务数据，不做备份。
 
 ## 手动方式
 

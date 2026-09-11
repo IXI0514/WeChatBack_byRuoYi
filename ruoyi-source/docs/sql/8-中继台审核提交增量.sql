@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- 中继台审核提交与名称去重：已有环境增量脚本。
 -- 先执行下方重复检查；如返回记录，先在后台合并/改名，再继续创建唯一索引。
 SELECT LOWER(REPLACE(TRIM(repeater_name), ' ', '')) AS name_normalized, COUNT(*) AS duplicate_count
