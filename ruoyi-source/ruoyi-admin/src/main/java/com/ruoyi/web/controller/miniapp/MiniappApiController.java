@@ -3,6 +3,7 @@ package com.ruoyi.web.controller.miniapp;
 import java.util.List;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -31,6 +32,8 @@ import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.utils.MiniappLogUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 小程序登录验证接口(给小程序调用,匿名访问)
@@ -46,6 +49,8 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/api")
 public class MiniappApiController
 {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @Autowired
     private IMiniappUserService miniappUserService;
 
@@ -168,7 +173,7 @@ public class MiniappApiController
         String reqUrl = "/api/login/verify";
         String ip = params.getOrDefault("ip", "");
 
-        String details = "{\"miniappId\":\"" + miniappId + "\",\"openid\":\"" + openid + "\",\"wxId\":\"" + wxId + "\"}";
+        String details = requestDetails(params);
 
         String validIds = configService.selectConfigByKey("miniapp.valid.ids");
         if (StringUtils.isEmpty(validIds))
@@ -222,6 +227,14 @@ public class MiniappApiController
             {
                 MiniappLogUtil.log("接口日志", "小程序用户验证", "拒绝", details, miniappId, openid, reqUrl, System.currentTimeMillis() - startTime, ip);
                 return AjaxResult.error("用户已停用,拒绝访问");
+            }
+            if (StringUtils.isNotEmpty(nickname) && !nickname.equals(user.getNickname()))
+            {
+                // 小程序昵称可变化，只更新昵称，不能借登录验证覆盖后台维护的会员和状态字段。
+                MiniappUser nicknameUpdate = new MiniappUser();
+                nicknameUpdate.setUserId(user.getUserId());
+                nicknameUpdate.setNickname(nickname);
+                miniappUserService.updateMiniappUser(nicknameUpdate);
             }
             MiniappLogUtil.log("接口日志", "小程序用户验证", "成功", details, miniappId, openid, reqUrl, System.currentTimeMillis() - startTime, ip);
             AjaxResult ajax = AjaxResult.success("用户验证成功");
@@ -303,6 +316,28 @@ public class MiniappApiController
             throw new IllegalArgumentException(name + " 长度超限或包含控制字符");
         value = value.trim();
         return value.isEmpty() ? null : value;
+    }
+
+    /**
+     * 完整保留登录接口传入的字段，避免手工拼接 JSON 时遗漏 nickname、ip 或后续扩展字段。
+     * 请求凭证只记录脱敏值，防止日志泄露可直接使用的小程序 token。
+     */
+    private String requestDetails(Map<String, String> params)
+    {
+        Map<String, String> details = new LinkedHashMap<>(params);
+        if (details.containsKey("token"))
+        {
+            details.put("token", "***");
+        }
+        try
+        {
+            return OBJECT_MAPPER.writeValueAsString(details);
+        }
+        catch (JsonProcessingException e)
+        {
+            // 当前接口只接受字符串参数，理论上不会到达这里；保留合法 JSON 以确保日志写入不受影响。
+            return "{\"logSerializeError\":true}";
+        }
     }
 
     private String jsonText(com.fasterxml.jackson.databind.JsonNode params, String name, int maxLength, boolean required)
