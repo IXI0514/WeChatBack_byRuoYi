@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.MiniappRepeaterSubmissionMapper">
+  <resultMap id="SubmissionResult" type="MiniappRepeaterSubmission">
+    <id property="submissionId" column="submission_id"/><result property="miniappId" column="miniapp_id"/>
+    <result property="repeaterName" column="repeater_name"/><result property="nameNormalized" column="name_normalized"/>
+    <result property="callSign" column="call_sign"/><result property="province" column="province"/><result property="city" column="city"/>
+    <result property="operationMode" column="operation_mode"/><result property="uplinkFrequencyMhz" column="uplink_frequency_mhz"/><result property="downlinkFrequencyMhz" column="downlink_frequency_mhz"/>
+    <result property="radioConfig" column="radio_config"/><result property="remark" column="remark"/><result property="reviewStatus" column="review_status"/>
+    <result property="reviewRemark" column="review_remark"/><result property="reviewer" column="reviewer"/><result property="reviewTime" column="review_time"/><result property="repeaterId" column="repeater_id"/>
+    <result property="createTime" column="create_time"/>
+  </resultMap>
+  <select id="countRepeaterByNormalizedName" resultType="int">select count(1) from miniapp_repeater where name_normalized=#{nameNormalized}</select>
+  <select id="countSubmissionByNormalizedName" resultType="int">select count(1) from miniapp_repeater_submission where name_normalized=#{nameNormalized}</select>
+  <insert id="insertSubmission" parameterType="MiniappRepeaterSubmission" useGeneratedKeys="true" keyProperty="submissionId">
+    insert into miniapp_repeater_submission(miniapp_id,repeater_name,name_normalized,call_sign,province,city,operation_mode,uplink_frequency_mhz,downlink_frequency_mhz,radio_config,remark,review_status,create_time)
+    values(#{miniappId},#{repeaterName},#{nameNormalized},#{callSign},#{province},#{city},#{operationMode},#{uplinkFrequencyMhz},#{downlinkFrequencyMhz},#{radioConfig},#{remark},'0',sysdate())
+  </insert>
+  <select id="selectSubmissionList" parameterType="MiniappRepeaterSubmission" resultMap="SubmissionResult">
+    select * from miniapp_repeater_submission <where>
+      <if test="reviewStatus != null and reviewStatus != ''">and review_status=#{reviewStatus}</if>
+      <if test="repeaterName != null and repeaterName != ''">and repeater_name like concat('%',#{repeaterName},'%')</if>
+      <if test="miniappId != null and miniappId != ''">and miniapp_id=#{miniappId}</if>
+    </where> order by create_time desc
+  </select>
+  <select id="selectSubmissionById" parameterType="Long" resultMap="SubmissionResult">select * from miniapp_repeater_submission where submission_id=#{submissionId}</select>
+  <update id="reviewSubmission" parameterType="MiniappRepeaterSubmission">
+    update miniapp_repeater_submission set review_status=#{reviewStatus},review_remark=#{reviewRemark},reviewer=#{reviewer},review_time=sysdate(),repeater_id=#{repeaterId}
+    where submission_id=#{submissionId} and review_status='0'
+  </update>
+</mapper>

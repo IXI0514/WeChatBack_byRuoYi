@@ -23,6 +23,8 @@ import com.ruoyi.system.service.IMiniappApiLogService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.ruoyi.system.domain.MiniappRepeater;
 import com.ruoyi.system.service.IMiniappRepeaterService;
+import com.ruoyi.system.domain.MiniappRepeaterSubmission;
+import com.ruoyi.system.service.IMiniappRepeaterSubmissionService;
 import java.util.List;
 
 /** 系统后台的小程序管理入口：用户、会员、接口日志和中继台。 */
@@ -127,6 +129,28 @@ public class MiniappManageController extends BaseController
     // 中继台管理
     @Autowired
     private IMiniappRepeaterService miniappRepeaterService;
+
+    @Autowired
+    private IMiniappRepeaterSubmissionService miniappRepeaterSubmissionService;
+
+    @ApiOperation("中继台审核提交列表")
+    @PreAuthorize("@ss.hasPermi('miniapp:repeater:review')")
+    @GetMapping("/repeater/submission/list")
+    public TableDataInfo listRepeaterSubmission(MiniappRepeaterSubmission submission)
+    {
+        startPage();
+        return getDataTable(miniappRepeaterSubmissionService.selectList(submission));
+    }
+
+    @ApiOperation("审核中继台提交")
+    @PreAuthorize("@ss.hasPermi('miniapp:repeater:review')")
+    @Log(title = "中继台审核", businessType = BusinessType.UPDATE)
+    @PutMapping("/repeater/submission/review")
+    public AjaxResult reviewRepeaterSubmission(@RequestBody MiniappRepeaterSubmission submission)
+    {
+        submission.setReviewer(getUsername());
+        return toAjax(miniappRepeaterSubmissionService.review(submission));
+    }
 
     @ApiOperation("中继台列表")
     @PreAuthorize("@ss.hasPermi('miniapp:repeater:list')")

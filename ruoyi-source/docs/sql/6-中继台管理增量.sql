@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS miniapp_repeater (
   repeater_id bigint(20) NOT NULL AUTO_INCREMENT COMMENT '中继台ID',
   repeater_name varchar(100) NOT NULL COMMENT '中继台名称',
+  name_normalized varchar(100) NOT NULL COMMENT '名称去重键：去空白、小写',
   call_sign varchar(50) DEFAULT NULL COMMENT '呼号',
   province varchar(30) NOT NULL COMMENT '省份',
   city varchar(30) NOT NULL COMMENT '城市',
@@ -19,6 +20,7 @@ CREATE TABLE IF NOT EXISTS miniapp_repeater (
   update_by varchar(64) DEFAULT '' COMMENT '更新者',
   update_time datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (repeater_id),
+  UNIQUE KEY uk_name_normalized (name_normalized),
   KEY idx_region (province, city),
   KEY idx_name (repeater_name),
   KEY idx_call_sign (call_sign),

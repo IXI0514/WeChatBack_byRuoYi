@@ -14,7 +14,7 @@ public class MiniappRepeaterServiceImpl implements IMiniappRepeaterService
     private MiniappRepeaterMapper miniappRepeaterMapper;
     public List<MiniappRepeater> selectMiniappRepeaterList(MiniappRepeater repeater) { return miniappRepeaterMapper.selectMiniappRepeaterList(repeater); }
     public MiniappRepeater selectMiniappRepeaterById(Long repeaterId) { return miniappRepeaterMapper.selectMiniappRepeaterById(repeaterId); }
-    public int insertMiniappRepeater(MiniappRepeater repeater) { return miniappRepeaterMapper.insertMiniappRepeater(repeater); }
-    public int updateMiniappRepeater(MiniappRepeater repeater) { return miniappRepeaterMapper.updateMiniappRepeater(repeater); }
+    public int insertMiniappRepeater(MiniappRepeater repeater) { repeater.setNameNormalized(MiniappRepeaterSubmissionServiceImpl.normalizeName(repeater.getRepeaterName())); return miniappRepeaterMapper.insertMiniappRepeater(repeater); }
+    public int updateMiniappRepeater(MiniappRepeater repeater) { repeater.setNameNormalized(MiniappRepeaterSubmissionServiceImpl.normalizeName(repeater.getRepeaterName())); return miniappRepeaterMapper.updateMiniappRepeater(repeater); }
     public int deleteMiniappRepeaterByIds(Long[] repeaterIds) { return miniappRepeaterMapper.deleteMiniappRepeaterByIds(repeaterIds); }
 }

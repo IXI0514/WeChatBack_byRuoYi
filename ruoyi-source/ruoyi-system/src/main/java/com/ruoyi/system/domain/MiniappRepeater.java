@@ -21,6 +21,7 @@ public class MiniappRepeater extends BaseEntity
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date lastVerifiedAt;
     private String radioConfig;
+    private String nameNormalized;
 
     public Long getRepeaterId() { return repeaterId; }
     public void setRepeaterId(Long repeaterId) { this.repeaterId = repeaterId; }
@@ -46,4 +47,6 @@ public class MiniappRepeater extends BaseEntity
     public void setLastVerifiedAt(Date lastVerifiedAt) { this.lastVerifiedAt = lastVerifiedAt; }
     public String getRadioConfig() { return radioConfig; }
     public void setRadioConfig(String radioConfig) { this.radioConfig = radioConfig; }
+    public String getNameNormalized() { return nameNormalized; }
+    public void setNameNormalized(String nameNormalized) { this.nameNormalized = nameNormalized; }
 }

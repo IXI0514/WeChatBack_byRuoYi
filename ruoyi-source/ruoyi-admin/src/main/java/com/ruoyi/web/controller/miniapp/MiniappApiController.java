@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.ruoyi.system.domain.MiniappRepeater;
 import com.ruoyi.system.service.IMiniappRepeaterService;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +25,8 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.MiniappUser;
 import com.ruoyi.system.service.IMiniappUserService;
+import com.ruoyi.system.domain.MiniappRepeaterSubmission;
+import com.ruoyi.system.service.IMiniappRepeaterSubmissionService;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.utils.MiniappLogUtil;
 import io.swagger.annotations.Api;
@@ -49,6 +54,9 @@ public class MiniappApiController
 
     @Value("${miniapp.api.aes-key:}")
     private String apiAesKey;
+
+    @Autowired
+    private IMiniappRepeaterSubmissionService miniappRepeaterSubmissionService;
 
     /** 仅凭白名单 ID 领取 token，不验证调用方身份；仅用于公开数据。 */
     @Anonymous
@@ -87,6 +95,52 @@ public class MiniappApiController
         catch (IllegalStateException e)
         {
             return ResponseEntity.status(503).body(AjaxResult.error(503, e.getMessage()));
+        }
+    }
+
+    @Anonymous
+    @ApiOperation("提交中继台资料审核")
+    @PostMapping("/repeater/submit")
+    public ResponseEntity<AjaxResult> submitRepeater(@RequestBody(required = false) com.fasterxml.jackson.databind.JsonNode params)
+    {
+        if (params == null || !params.isObject())
+            return ResponseEntity.badRequest().body(AjaxResult.error(400, "请求体必须是 JSON 对象"));
+        Set<String> allowed = new HashSet<>(Arrays.asList("miniappId", "token", "repeaterName", "callSign", "province", "city", "operationMode", "uplinkFrequencyMhz", "downlinkFrequencyMhz", "radioConfig", "remark"));
+        java.util.Iterator<String> names = params.fieldNames();
+        while (names.hasNext()) if (!allowed.contains(names.next()))
+            return ResponseEntity.badRequest().body(AjaxResult.error(400, "存在不允许提交的字段"));
+        try
+        {
+            String miniappId = jsonText(params, "miniappId", 64, true);
+            String token = jsonText(params, "token", 1024, true);
+            ResponseEntity<AjaxResult> rejected = checkBusinessToken(token, miniappId);
+            if (rejected != null) return rejected;
+            MiniappRepeaterSubmission submission = new MiniappRepeaterSubmission();
+            submission.setMiniappId(miniappId);
+            submission.setRepeaterName(jsonText(params, "repeaterName", 100, true));
+            submission.setCallSign(jsonText(params, "callSign", 50, false));
+            submission.setProvince(jsonText(params, "province", 30, true));
+            submission.setCity(jsonText(params, "city", 30, true));
+            submission.setOperationMode(jsonText(params, "operationMode", 16, true));
+            if (!Arrays.asList("ANALOG", "DIGITAL", "MIXED").contains(submission.getOperationMode()))
+                throw new IllegalArgumentException("operationMode 必须为 ANALOG、DIGITAL 或 MIXED");
+            submission.setUplinkFrequencyMhz(jsonDecimal(params, "uplinkFrequencyMhz"));
+            submission.setDownlinkFrequencyMhz(jsonDecimal(params, "downlinkFrequencyMhz"));
+            submission.setRadioConfig(jsonConfig(params.get("radioConfig")));
+            submission.setRemark(jsonText(params, "remark", 500, false));
+            miniappRepeaterSubmissionService.submit(submission);
+            AjaxResult result = AjaxResult.success("已提交审核");
+            result.put("submissionId", submission.getSubmissionId());
+            result.put("reviewStatus", "0");
+            return ResponseEntity.ok(result);
+        }
+        catch (com.ruoyi.common.exception.ServiceException e)
+        {
+            return ResponseEntity.status(409).body(AjaxResult.error(409, e.getMessage()));
+        }
+        catch (IllegalArgumentException e)
+        {
+            return ResponseEntity.badRequest().body(AjaxResult.error(400, e.getMessage()));
         }
     }
 
@@ -249,6 +303,47 @@ public class MiniappApiController
             throw new IllegalArgumentException(name + " 长度超限或包含控制字符");
         value = value.trim();
         return value.isEmpty() ? null : value;
+    }
+
+    private String jsonText(com.fasterxml.jackson.databind.JsonNode params, String name, int maxLength, boolean required)
+    {
+        com.fasterxml.jackson.databind.JsonNode node = params.get(name);
+        if (node == null || node.isNull())
+        {
+            if (required) throw new IllegalArgumentException(name + " 不能为空");
+            return null;
+        }
+        if (!node.isTextual()) throw new IllegalArgumentException(name + " 必须为字符串");
+        String value = node.textValue().trim();
+        if ((required && value.isEmpty()) || value.length() > maxLength || value.chars().anyMatch(Character::isISOControl))
+            throw new IllegalArgumentException(name + " 为空、长度超限或包含控制字符");
+        return value.isEmpty() ? null : value;
+    }
+
+    private BigDecimal jsonDecimal(com.fasterxml.jackson.databind.JsonNode params, String name)
+    {
+        com.fasterxml.jackson.databind.JsonNode node = params.get(name);
+        if (node == null || !node.isNumber()) throw new IllegalArgumentException(name + " 必须为数字");
+        BigDecimal value = node.decimalValue();
+        if (value.scale() > 5 || value.compareTo(BigDecimal.ZERO) <= 0 || value.compareTo(new BigDecimal("9999.99999")) > 0)
+            throw new IllegalArgumentException(name + " 范围或精度不正确");
+        return value;
+    }
+
+    private String jsonConfig(com.fasterxml.jackson.databind.JsonNode node)
+    {
+        if (node == null || node.isNull()) return null;
+        if (!node.isObject()) throw new IllegalArgumentException("radioConfig 必须为 JSON 对象");
+        try
+        {
+            String value = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(node);
+            if (value.length() > 8000) throw new IllegalArgumentException("radioConfig 过长");
+            return value;
+        }
+        catch (com.fasterxml.jackson.core.JsonProcessingException e)
+        {
+            throw new IllegalArgumentException("radioConfig 格式错误");
+        }
     }
 
     private long tokenExpirySeconds()

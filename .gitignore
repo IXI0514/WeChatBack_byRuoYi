@@ -1,2 +1,5 @@
 
 .idea
+**/quickdeploy/
+node_modules
+.codex-artifact-node_modules

@@ -1,4 +1,4 @@
-# 第 1 篇：Nginx 实战——静态网站、域名、HTTPS 与同域名 API
+# 42 · 第 1 篇：Nginx 实战——静态网站、域名、HTTPS 与同域名 API
 
 > 前置：完成[第 0 篇](./00-服务器基础与常用命令.md)，能以普通用户登录并使用 `sudo`。  
 > 本篇终点：`https://example.com/` 提供静态网站，`https://example.com/api/health` 转发给独立后台服务。  

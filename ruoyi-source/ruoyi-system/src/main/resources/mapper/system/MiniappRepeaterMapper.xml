@@ -4,6 +4,7 @@
     <resultMap id="MiniappRepeaterResult" type="MiniappRepeater">
         <id property="repeaterId" column="repeater_id"/>
         <result property="repeaterName" column="repeater_name"/>
+        <result property="nameNormalized" column="name_normalized"/>
         <result property="callSign" column="call_sign"/>
         <result property="province" column="province"/>
         <result property="city" column="city"/>
@@ -21,7 +22,7 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
     <sql id="selectRepeaterVo">
-        select repeater_id, repeater_name, call_sign, province, city, operation_mode,
+        select repeater_id, repeater_name, name_normalized, call_sign, province, city, operation_mode,
                uplink_frequency_mhz, downlink_frequency_mhz, status, is_public,
                last_verified_at, radio_config, remark, create_by, create_time, update_by, update_time
         from miniapp_repeater
@@ -43,13 +44,13 @@
         <include refid="selectRepeaterVo"/> where repeater_id = #{repeaterId}
     </select>
     <insert id="insertMiniappRepeater" parameterType="MiniappRepeater" useGeneratedKeys="true" keyProperty="repeaterId">
-        insert into miniapp_repeater(repeater_name, call_sign, province, city, operation_mode, uplink_frequency_mhz, downlink_frequency_mhz, status, is_public, last_verified_at, radio_config, remark, create_by, create_time)
-        values(#{repeaterName}, #{callSign}, #{province}, #{city}, #{operationMode}, #{uplinkFrequencyMhz}, #{downlinkFrequencyMhz}, #{status}, #{isPublic}, #{lastVerifiedAt}, #{radioConfig}, #{remark}, #{createBy}, sysdate())
+        insert into miniapp_repeater(repeater_name, name_normalized, call_sign, province, city, operation_mode, uplink_frequency_mhz, downlink_frequency_mhz, status, is_public, last_verified_at, radio_config, remark, create_by, create_time)
+        values(#{repeaterName}, #{nameNormalized}, #{callSign}, #{province}, #{city}, #{operationMode}, #{uplinkFrequencyMhz}, #{downlinkFrequencyMhz}, #{status}, #{isPublic}, #{lastVerifiedAt}, #{radioConfig}, #{remark}, #{createBy}, sysdate())
     </insert>
     <update id="updateMiniappRepeater" parameterType="MiniappRepeater">
         update miniapp_repeater
         <set>
-            repeater_name=#{repeaterName}, call_sign=#{callSign}, province=#{province}, city=#{city},
+            repeater_name=#{repeaterName}, name_normalized=#{nameNormalized}, call_sign=#{callSign}, province=#{province}, city=#{city},
             operation_mode=#{operationMode}, uplink_frequency_mhz=#{uplinkFrequencyMhz}, downlink_frequency_mhz=#{downlinkFrequencyMhz},
             status=#{status}, is_public=#{isPublic}, last_verified_at=#{lastVerifiedAt}, radio_config=#{radioConfig},
             remark=#{remark}, update_by=#{updateBy}, update_time=sysdate()

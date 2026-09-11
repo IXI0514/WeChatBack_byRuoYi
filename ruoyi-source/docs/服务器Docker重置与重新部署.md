@@ -133,6 +133,7 @@ cp ../ruoyi-source/docs/sql/1-基础数据.sql mysql/init/01-base.sql
 cp ../ruoyi-source/docs/sql/2-菜单初始化SQL.sql mysql/init/02-miniapp-menu.sql
 cp ../ruoyi-source/docs/sql/4-小程序建表脚本.sql mysql/init/03-miniapp-table.sql
 cp ../ruoyi-source/docs/sql/6-中继台管理增量.sql mysql/init/04-repeater.sql
+cp ../ruoyi-source/docs/sql/8-中继台审核提交增量.sql mysql/init/05-repeater-submission.sql
 
 ls -lah mysql/init
 ```
